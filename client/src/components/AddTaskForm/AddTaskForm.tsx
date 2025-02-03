@@ -7,8 +7,11 @@ function AddTaskForm() {
   const [task, setTask] = useState('');
 
   async function addTask() {
-    if (!task.trim()) return; // Prevent empty tasks
-
+    // Prevent empty tasks
+    if (!task.trim()) {
+      console.log('Please enter a task');
+      return;
+    }
     try {
       const response = await fetch('http://localhost:5000/todos', {
         method: 'POST',
