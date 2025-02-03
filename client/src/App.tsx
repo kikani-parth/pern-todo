@@ -1,6 +1,7 @@
 import Heading from './components/Heading/Heading';
 import AddTaskForm from './components/AddTaskForm/AddTaskForm';
 import './App.css';
+// import DisplayTasks from './components/DisplayTasks.tsx/DisplayTasks';
 import TaskList from './components/TaskList/TaskList';
 
 function App() {
