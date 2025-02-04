@@ -1,90 +1,64 @@
-import { useEffect, useState } from 'react';
+import './TaskList.css';
 import Button from '../Button/Button';
+import { Task, deleteTask, editTask } from '../../utils/taskService';
 
-type Task = {
-  todo_id: number;
-  description: string;
+type TaskListProps = {
+  tasks: Task[];
+  setTasks: React.Dispatch<React.SetStateAction<Task[]>>;
 };
 
-function TaskList() {
-  const [tasks, setTasks] = useState<Task[]>([]);
+function TaskList({ tasks, setTasks }: TaskListProps) {
+  async function handleDelete(id: number) {
+    const confirmed = window.confirm(
+      'Are you sure you want to delete this task?'
+    );
+    if (!confirmed) return;
 
-  async function getAllTasks() {
-    try {
-      const response = await fetch('http://localhost:5000/todos');
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch all tasks');
-      }
-
-      const data: Task[] = await response.json(); // Extract JSON data
-
-      setTasks(data);
-    } catch (error) {
-      console.error(error);
-    }
+    await deleteTask(id);
+    setTasks((prevTasks: Task[]) =>
+      prevTasks.filter((task) => task.todo_id !== id)
+    );
   }
 
-  async function editTask(id: number, currentDescription: string) {
+  async function handleEdit(id: number, currentDescription: string) {
     const newDescription = prompt('Enter new description:', currentDescription);
-
     if (!newDescription || newDescription === currentDescription) return;
 
     try {
-      const response = await fetch(`http://localhost:5000/todos/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ description: newDescription }),
-      });
+      const updatedTask = await editTask(id, newDescription);
 
-      if (!response.ok) {
-        throw new Error('Failed to update task');
+      // If updatedTask is valid, update state
+      if (updatedTask) {
+        setTasks((prevTasks: Task[]) =>
+          prevTasks.map((task) => (task.todo_id === id ? updatedTask : task))
+        );
+      } else {
+        console.error('Failed to update task');
       }
-
-      // Refresh the task list after updating
-      getAllTasks();
     } catch (error) {
-      console.error(error);
+      console.error('Error updating task:', error);
     }
   }
-
-  async function deleteTask(id: number) {
-    const confirmDelete = window.confirm(
-      'Are you sure you want to delete this task?'
-    );
-
-    if (!confirmDelete) return;
-
-    try {
-      const response = await fetch(`http://localhost:5000/todos/${id}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete the task');
-      }
-
-      // Refresh the task list after deleting
-      getAllTasks();
-    } catch (error) {
-      console.error(error);
-    }
-  }
-  useEffect(() => {
-    getAllTasks();
-  }, []);
 
   return (
     <div>
       <ul>
         {tasks.map((task) => (
-          <li key={task.todo_id}>
-            {task.description}
-            <Button
-              title="Edit"
-              onClick={() => editTask(task.todo_id, task.description)}
-            />
-            <Button title="Delete" onClick={() => deleteTask(task.todo_id)} />
+          <li key={task.todo_id} className="task-item">
+            <span>*</span>
+            <span className="task-text">{task.description}</span>
+            <div className="task-buttons">
+              <Button
+                title="Edit"
+                onClick={() => handleEdit(task.todo_id, task.description)}
+                className="edit-btn"
+              />
+              <Button
+                title="Delete"
+                onClick={() => handleDelete(task.todo_id)}
+                className="delete-btn"
+              />
+            </div>
           </li>
         ))}
       </ul>

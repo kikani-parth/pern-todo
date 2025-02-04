@@ -1,15 +1,21 @@
-import Heading from './components/Heading/Heading';
+import { useState, useEffect } from 'react';
 import AddTaskForm from './components/AddTaskForm/AddTaskForm';
-import './App.css';
-// import DisplayTasks from './components/DisplayTasks.tsx/DisplayTasks';
 import TaskList from './components/TaskList/TaskList';
+import { Task, getAllTasks } from './utils/taskService';
+import './App.css';
 
 function App() {
+  const [tasks, setTasks] = useState<Task[]>([]);
+
+  useEffect(() => {
+    getAllTasks().then(setTasks);
+  }, []);
+
   return (
     <div className="container">
-      <Heading />
-      <AddTaskForm />
-      <TaskList />
+      <h1>PERN To-Do App</h1>
+      <AddTaskForm setTasks={setTasks} />
+      <TaskList tasks={tasks} setTasks={setTasks} />
     </div>
   );
 }

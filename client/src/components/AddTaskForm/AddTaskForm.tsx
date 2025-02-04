@@ -1,39 +1,38 @@
 import { useState } from 'react';
 import Button from '../Button/Button';
 import InputBox from '../InputBox/InputBox';
+import { Task, addTask } from '../../utils/taskService';
 import './AddTaskForm.css';
 
-function AddTaskForm() {
+type AddTaskFormProps = {
+  setTasks: React.Dispatch<React.SetStateAction<Task[]>>;
+};
+
+function AddTaskForm({ setTasks }: AddTaskFormProps) {
   const [task, setTask] = useState('');
 
-  async function addTask() {
-    // Prevent empty tasks
-    if (!task.trim()) {
-      console.log('Please enter a task');
-      return;
-    }
+  async function handleAddTask() {
+    if (!task.trim()) return;
     try {
-      const response = await fetch('http://localhost:5000/todos', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ description: task }),
-      });
+      const newTask = await addTask(task);
 
-      if (!response.ok) {
-        throw new Error('Failed to add task');
+      if (newTask === null) {
+        console.error('Failed to add task');
+        return;
       }
 
-      setTask(''); // Clear input after adding task
-      console.log('Task added successfully!');
+      setTasks((prevTasks) => [...prevTasks, newTask]); // Update the task list with the new task
+
+      setTask(''); // Reset the input
     } catch (error) {
-      console.error(error);
+      console.error('Failed to add task:', error);
     }
   }
 
   return (
     <div className="add-task-form">
       <InputBox task={task} setTask={setTask} />
-      <Button title="Add Task" onClick={addTask} />
+      <Button title="Add Task" onClick={handleAddTask} className="add-btn" />
     </div>
   );
 }
